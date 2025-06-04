@@ -1,0 +1,182 @@
+@startuml
+!theme vibrant
+
+title Diagram Kelas Aplikasi Point of Sale
+
+package "Aplikasi Utama (penjualandetil)" <<Frame>> {
+    class MainApp {
+        + {static} main(String[] args): void
+        + start(Stage primaryStage): void
+    }
+
+    class FormTransaksiController <<FXML Controller>> {
+        ' FXML Injected Fields
+        - TextField textInputIDBuyer
+        - TextField textNamaBuyer
+        - ListView<String> listItems
+        - TableView<ObservableList<String>> tableBarang
+        ' ... (other @FXML fields)
+
+        ' Services & Factory
+        - SessionFactory sessionFactory
+        - ProductService productService
+        - UserService userService
+        - TransactionService transactionService
+
+        ' UI State
+        - ObservableList<String> productList
+        - ObservableList<ObservableList<String>> tableData
+
+        + initialize(): void
+        + handleCariClick(ActionEvent event): void
+        + handleListClick(MouseEvent event): void
+        + handleTambahClick(ActionEvent event): void
+        + handleSimpanClick(ActionEvent event): void
+        + handleBatalClick(ActionEvent event): void
+        + handleTutupClick(ActionEvent event): void
+        + handleBayarKeyReleased(): void
+        - updateTotalHarga(): void
+        - clearProductFields(): void
+        - clearFields(): void
+        - showError(String title, String message): void
+        - showInfo(String title, String message): void
+    }
+    MainApp ..> FormTransaksiController : launches
+}
+
+package "Utilitas (penjualandetil.util)" <<Folder>> {
+    class HibernateUtil <<Singleton>> {
+        - {static} volatile SessionFactory sessionFactoryInstance
+        - HibernateUtil()
+        + {static} SessionFactory getSessionFactory()
+        + {static} void shutdown()
+    }
+    FormTransaksiController ..> HibernateUtil : uses
+}
+
+package "Entitas (penjualandetil.entity)" <<Folder>> {
+    class Product <<Entity>> {
+        - int productId
+        - String name
+        - BigDecimal price
+        + getProductId(): int
+        + getName(): String
+        + getPrice(): BigDecimal
+        ' ... other getters/setters ...
+    }
+
+    class User <<Entity>> {
+        - int userId
+        - String username
+        - String email
+        + getUserId(): int
+        + getUsername(): String
+        + getEmail(): String
+        ' ... other getters/setters ...
+    }
+
+    class Transaction <<Entity>> {
+        - int transactionId
+        - Date transactionDate
+        - BigDecimal totalAmount
+        - String paymentStatus
+        + getTransactionId(): int
+        + addTransactionDetail(TransactionDetail detail): void
+        ' ... other getters/setters ...
+    }
+
+    class TransactionDetail <<Entity>> {
+        - int transactionDetailId
+        - int quantity
+        - BigDecimal priceAtTransaction
+        - BigDecimal subtotal
+        + getTransactionDetailId(): int
+        ' ... other getters/setters ...
+    }
+
+    Transaction "1" o--> "1" User : buyer
+    Transaction "1" *--> "1..*" TransactionDetail : contains >
+    TransactionDetail "1" o--> "1" Product : refers to
+}
+
+package "Service Layer (penjualandetil.service)" <<Folder>> {
+    interface ProductService {
+        + getAllProductNames(): List<String>
+        + findProductByName(String name): Product
+        + findProductById(int id): Product
+    }
+
+    interface UserService {
+        + findUserById(int id): User
+    }
+
+    interface TransactionService {
+        + saveTransaction(Transaction transaction): void throws Exception
+    }
+}
+
+package "Service Implementations (penjualandetil.service.impl)" <<Folder>> {
+    class ProductServiceImpl implements ProductService {
+        - SessionFactory sessionFactory
+        + ProductServiceImpl(SessionFactory sf)
+        ' ... implemented methods ...
+    }
+
+    class UserServiceImpl implements UserService {
+        - SessionFactory sessionFactory
+        + UserServiceImpl(SessionFactory sf)
+        ' ... implemented methods ...
+    }
+
+    class TransactionServiceImpl implements TransactionService {
+        - SessionFactory sessionFactory
+        + TransactionServiceImpl(SessionFactory sf)
+        ' ... implemented methods ...
+    }
+}
+
+package "Service Decorators (penjualandetil.service.decorator)" <<Folder>> {
+    class LoggingProductServiceDecorator implements ProductService {
+        - ProductService wrappedService
+        + LoggingProductServiceDecorator(ProductService ps)
+        ' ... implemented methods with logging ...
+    }
+}
+
+package "Command Pattern (penjualandetil.command)" <<Folder>> {
+    interface Command {
+        + execute(): void throws Exception
+    }
+
+    class SaveTransactionCommand implements Command {
+        - TransactionService transactionService
+        - UserService userService
+        - ProductService productService
+        - int transactionId
+        - int userId
+        - ObservableList<ObservableList<String>> tableData
+        - String paymentStatus
+        + SaveTransactionCommand(...)
+        + execute(): void throws Exception
+    }
+}
+
+' Relationships between layers
+FormTransaksiController o--> ProductService
+FormTransaksiController o--> UserService
+FormTransaksiController o--> TransactionService
+FormTransaksiController ..> SaveTransactionCommand : <<creates>>
+
+ProductServiceImpl ..|> ProductService
+UserServiceImpl ..|> UserService
+TransactionServiceImpl ..|> TransactionService
+
+LoggingProductServiceDecorator ..|> ProductService
+LoggingProductServiceDecorator o--> ProductService : wraps >
+
+SaveTransactionCommand ..|> Command
+SaveTransactionCommand o--> TransactionService
+SaveTransactionCommand o--> UserService
+SaveTransactionCommand o--> ProductService
+
+@enduml

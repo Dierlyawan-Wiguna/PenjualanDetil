@@ -1,0 +1,89 @@
+@startuml
+!theme vibrant
+
+title Diagram Urutan - Proses Simpan Transaksi
+
+actor Kasir
+
+participant "ui:FormTransaksi" as UI
+participant "controller:FormTransaksiController" as Controller
+participant "cmd:SaveTransactionCommand" as SaveCmd
+participant "userSvc:UserService" as UserSvc
+participant "prodSvc:ProductService" as ProdSvc
+participant "txSvc:TransactionService" as TxSvc
+database "db:Database (via Hibernate)" as DB
+
+Kasir -> UI : klikSimpanButton()
+activate UI
+UI -> Controller : handleSimpanClick(event)
+activate Controller
+
+Controller -> Controller : validasiInputUI()
+alt Input Tidak Valid
+    Controller -> UI : showError("Input Error")
+    UI -> Kasir : tampilkanPesanError()
+else Input Valid
+    Controller -> SaveCmd : <<create>> (txSvc, userSvc, prodSvc, dataUI)
+    Controller -> SaveCmd : execute()
+    activate SaveCmd
+
+    SaveCmd -> UserSvc : findUserById(userId)
+    activate UserSvc
+    UserSvc -> DB : (SELECT User)
+    DB --> UserSvc : userEntity
+    UserSvc --> SaveCmd : userEntity
+    deactivate UserSvc
+    alt User Tidak Ditemukan
+        SaveCmd --> Controller : throws Exception("User not found")
+    else User Ditemukan
+        loop untuk setiap itemData di tableData
+            SaveCmd -> ProdSvc : findProductById(productId)
+            activate ProdSvc
+            ProdSvc -> DB : (SELECT Product)
+            DB --> ProdSvc : productEntity
+            ProdSvc --> SaveCmd : productEntity
+            deactivate ProdSvc
+            alt Product Tidak Ditemukan
+                 SaveCmd --> Controller : throws Exception("Product not found")
+                 break
+            else Product Ditemukan
+                SaveCmd -> SaveCmd : buat TransactionDetail
+                SaveCmd -> SaveCmd : tambahkan Detail ke Transaction
+            end
+        end loop
+
+        SaveCmd -> SaveCmd : buat Transaction entity
+        SaveCmd -> TxSvc : saveTransaction(transactionEntity)
+        activate TxSvc
+        TxSvc -> DB : (BEGIN TRANSACTION)
+        TxSvc -> DB : (PERSIST Transaction & Details)
+        TxSvc -> DB : (COMMIT TRANSACTION)
+        alt Gagal Simpan DB
+            DB --> TxSvc : throws SQLException
+            TxSvc -> DB : (ROLLBACK TRANSACTION)
+            TxSvc --> SaveCmd : throws Exception("Save failed")
+        else Berhasil Simpan DB
+            DB --> TxSvc : void
+            TxSvc --> SaveCmd : void
+        end
+        deactivate TxSvc
+    end
+    
+    alt Operasi Command Gagal
+         SaveCmd --> Controller : throws Exception(msg)
+         Controller -> UI : showError("Gagal", msg)
+         UI -> Kasir : tampilkanPesanError()
+    else Operasi Command Sukses
+        SaveCmd --> Controller : void
+        Controller -> UI : showInfo("Sukses")
+        UI -> Kasir : tampilkanPesanSukses()
+        Controller -> Controller : clearFields()
+        Controller -> UI : updateTampilanFormKosong()
+    end
+    deactivate SaveCmd
+end
+
+deactivate Controller
+deactivate UI
+
+@enduml

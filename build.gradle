@@ -1,0 +1,47 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.1.0' // Or a newer version if available
+}
+
+group 'penjualandetil' // Can be your group ID
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+javafx {
+    version = "23" // Use a JavaFX version compatible with your JDK (e.g., 17, 21)
+    modules = [ 'javafx.controls', 'javafx.fxml' ]
+}
+
+application {
+    // Define your main class (you'll create this in the next step)
+    mainClass = 'penjualandetil.Main'
+}
+
+dependencies {
+    // MySQL Connector
+    implementation 'mysql:mysql-connector-java:8.0.33' // Or the latest version
+
+    // For Hibernate (as per your project description, you'll add this later)
+    implementation 'org.hibernate.orm:hibernate-core:6.4.4.Final' // Example version
+
+    // For Unit Testing (as per your project description)
+     testImplementation platform('org.junit:junit-bom:5.10.0')
+     testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+// Optional: If you have issues with module-path for JavaFX with certain JDK versions
+// run {
+//    jvmArgs = ['--module-path', configurations.compileClasspath.asPath, '--add-modules', 'javafx.controls,javafx.fxml']
+// }
+
+// For JUnit 5 testing
+ test {
+   useJUnitPlatform()
+     testLogging {
+         events "passed", "skipped", "failed"
+     }
+ }

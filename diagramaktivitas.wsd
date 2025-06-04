@@ -1,0 +1,87 @@
+@startuml
+!theme vibrant
+title Aktivitas Memproses Transaksi Baru
+
+|Kasir|
+start
+:Membuka Form Transaksi;
+
+|Form Transaksi (UI)|
+:Menampilkan Form;
+:Controller.initialize()
+  (loadProducts());
+:Menampilkan Daftar Produk;
+
+|Kasir|
+if (Perlu cari pembeli?) then (ya)
+  :Input ID Pembeli;
+  |Form Transaksi (UI)|
+  :Klik "Cari Pembeli";
+  |FormTransaksiController|
+  :handleCariClick()
+    Call UserService.findUserById();
+  |UserService|
+  :Ambil User dari DB;
+  |FormTransaksiController|
+  :Tampilkan data Pembeli;
+else (tidak)
+endif
+
+repeat
+  |Kasir|
+  :Pilih Produk dari List;
+  |FormTransaksiController|
+  :handleListClick()
+    Call ProductService.findProductByName();
+  |ProductService|
+  :Ambil Detail Produk dari DB;
+  |FormTransaksiController|
+  :Tampilkan Detail Produk;
+  |Kasir|
+  :Input Jumlah Barang;
+  |Form Transaksi (UI)|
+  :Klik "Tambah";
+  |FormTransaksiController|
+  :handleTambahClick()
+    Tambah Item ke Keranjang;
+    Update Total Harga UI;
+repeat while (Tambah Item Lain?) is (Ya) not (Tidak)
+
+|Kasir|
+:Input ID Transaksi;
+:Pastikan data siap;
+|Form Transaksi (UI)|
+:Klik "SIMPAN";
+
+|FormTransaksiController|
+:handleSimpanClick()
+  Validasi Input;
+if (Input valid?) then (Ya)
+  :Buat SaveTransactionCommand;
+  :command.execute();
+  |SaveTransactionCommand|
+  :execute()
+    Ambil User (UserService);
+    loop untuk setiap item
+      Ambil Product (ProductService);
+      Buat TransactionDetail;
+      Tambah detail ke Transaction;
+    end loop
+    Hitung Total Amount;
+    Call TransactionService.saveTransaction();
+  |TransactionService|
+  :saveTransaction()
+    Mulai Transaksi Hibernate;
+    Simpan Transaction (cascade Details);
+    Commit Transaksi Hibernate;
+  |FormTransaksiController|
+  :showInfo("Sukses");
+  :clearFields();
+else (Tidak Valid)
+  :showError("Input Error");
+endif
+
+|Form Transaksi (UI)|
+:Tampilkan status akhir;
+stop
+@enduml

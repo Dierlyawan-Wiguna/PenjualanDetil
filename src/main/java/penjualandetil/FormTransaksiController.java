@@ -112,7 +112,8 @@ public class FormTransaksiController {
 
             if (user != null) {
                 textNamaBuyer.setText(user.getUsername());
-                textTeleponBuyer.setText(user.getEmail()); // Asumsi email digunakan sebagai telepon
+                // Diubah: Menggunakan getNoTelepon() sesuai perubahan pada Entity User
+                textTeleponBuyer.setText(user.getNoTelepon());
             } else {
                 showError("Data Not Found", "User ID " + userId + " tidak ditemukan.");
             }

@@ -9,28 +9,33 @@ import jakarta.persistence.Table;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "products") // Sesuaikan dengan nama tabel produk Anda di database
+@Table(name = "products")
 public class Product {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Cocok untuk auto-increment ID di MySQL
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_id")
     private int productId;
 
-    @Column(name = "name", nullable = false, length = 255) // Sesuaikan panjang dan nullability
+    @Column(name = "name", nullable = false, length = 255)
     private String name;
 
-    @Column(name = "price", nullable = false, precision = 10, scale = 2) // precision dan scale untuk tipe DECIMAL
+    @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
+    
+    // Ditambahkan: field 'stock' sesuai skema SQL
+    @Column(name = "stock", nullable = false)
+    private int stock;
 
-    // Default constructor (diperlukan oleh Hibernate)
+    // Default constructor
     public Product() {
     }
 
     // Constructor lain jika diperlukan
-    public Product(String name, BigDecimal price) {
+    public Product(String name, BigDecimal price, int stock) {
         this.name = name;
         this.price = price;
+        this.stock = stock;
     }
 
     // Getters and Setters
@@ -57,6 +62,15 @@ public class Product {
     public void setPrice(BigDecimal price) {
         this.price = price;
     }
+    
+    // Ditambahkan: Getter dan Setter untuk stock
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
 
     @Override
     public String toString() {
@@ -64,6 +78,7 @@ public class Product {
                 "productId=" + productId +
                 ", name='" + name + '\'' +
                 ", price=" + price +
+                ", stock=" + stock +
                 '}';
     }
 }

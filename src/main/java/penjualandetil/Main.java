@@ -15,8 +15,8 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            // Ensure your FXML file is named FormTransaksi.fxml and is in src/main/resources/penjualandetil
-            URL fxmlLocation = getClass().getResource("/penjualandetil/FormTransaksi.fxml");
+            // Diubah: Memuat file FXML yang baru
+            URL fxmlLocation = getClass().getResource("/penjualandetil/PenjualandanDetilPenjualan.fxml");
             if (fxmlLocation == null) {
                 System.err.println("Cannot find FXML file. Make sure it's in src/main/resources/penjualandetil/");
                 return;

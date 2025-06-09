@@ -166,6 +166,16 @@ public class FormTransaksiController {
                 showError("Input Error", "Jumlah barang harus lebih dari 0.");
                 return;
             }
+
+            // --- LOGIKA CEK STOK SEBELUM TAMBAH KE KERANJANG ---
+            int productId = Integer.parseInt(kode);
+            Product product = productService.findProductById(productId); // Dapatkan objek produk lengkap
+            if (product.getStock() < qty) {
+                showError("Stok Tidak Cukup", "Stok untuk '" + product.getName() + "' hanya tersisa " + product.getStock() + ".");
+                return; // Hentikan proses jika stok kurang
+            }
+            // --- AKHIR LOGIKA CEK STOK ---
+
             BigDecimal price = new BigDecimal(hargaStr);
             BigDecimal subtotal = price.multiply(BigDecimal.valueOf(qty));
 
@@ -176,6 +186,9 @@ public class FormTransaksiController {
             clearProductFields();
         } catch (NumberFormatException e) {
             showError("Input Error", "Jumlah dan harga harus berupa angka yang valid.");
+        } catch (Exception e) {
+            showError("Service Error", "Terjadi kesalahan: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

@@ -8,32 +8,30 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "users") // Sesuaikan dengan nama tabel pengguna Anda di database
+@Table(name = "users") // Nama tabel sudah sesuai
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Cocok untuk auto-increment ID di MySQL
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private int userId;
 
-    @Column(name = "username", nullable = false, unique = true, length = 100) // Username biasanya unik
+    @Column(name = "username", nullable = false, unique = true, length = 100)
     private String username;
 
-    @Column(name = "email", nullable = true, unique = true, length = 255) // Email juga biasanya unik, bisa nullable
-    private String email;
+    // Diubah: field 'email' menjadi 'noTelepon' sesuai dengan skema SQL
+    @Column(name = "no_telepon", length = 50)
+    private String noTelepon;
 
-    // Tambahkan field lain jika ada, misalnya password, role, dll.
-    // @Column(name = "password")
-    // private String password;
 
-    // Default constructor (diperlukan oleh Hibernate)
+    // Default constructor
     public User() {
     }
 
-    // Constructor lain jika diperlukan
-    public User(String username, String email) {
+    // Constructor dengan field yang diperbarui
+    public User(String username, String noTelepon) {
         this.username = username;
-        this.email = email;
+        this.noTelepon = noTelepon;
     }
 
     // Getters and Setters
@@ -53,28 +51,21 @@ public class User {
         this.username = username;
     }
 
-    public String getEmail() {
-        return email;
+    // Diubah: Getter dan Setter untuk noTelepon
+    public String getNoTelepon() {
+        return noTelepon;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setNoTelepon(String noTelepon) {
+        this.noTelepon = noTelepon;
     }
-
-    // public String getPassword() {
-    //     return password;
-    // }
-    //
-    // public void setPassword(String password) {
-    //     this.password = password;
-    // }
 
     @Override
     public String toString() {
         return "User{" +
                 "userId=" + userId +
                 ", username='" + username + '\'' +
-                ", email='" + email + '\'' +
+                ", noTelepon='" + noTelepon + '\'' +
                 '}';
     }
 }
